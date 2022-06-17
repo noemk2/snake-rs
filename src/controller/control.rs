@@ -1,14 +1,7 @@
+// #![allow(unused_imports)]
 
-#![allow(unused_imports)]
-
-mod snake;
-mod direction;
-mod game;
-mod point;
-mod command;
-
-use crate::game::Game;
 use std::io::stdout;
+use crate::game::game::Game;
 
 
 pub fn controller_fn(){

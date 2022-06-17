@@ -1,26 +1,25 @@
-// use crate::snake::Snake;
-// use crate::point::Point;
-// use crate::direction::Direction;
-// use crate::command::Command;
-
-
-
-
-use std::io::Stdout;
-
-use crossterm::{ExecutableCommand};
-use crossterm::terminal::{Clear, ClearType, size, SetSize, enable_raw_mode, disable_raw_mode};
-use crossterm::style::{SetForegroundColor, Print, ResetColor, Color};
-use std::time::{Duration, Instant};
-use crossterm::cursor::{Show, MoveTo, Hide};
-use crossterm::event::{poll, read, Event, KeyCode, KeyModifiers, KeyEvent};
+use std::{
+    io::Stdout,
+    time::{Duration, Instant},
+};
 
 use rand::Rng;
 
-use crate::snake::direction::Direction;
-use crate::snake::point::Point;
-use crate::snake::snake::Snake;
+use crossterm::{
+    cursor::{Hide, MoveTo, Show},
+    event::{poll, read, Event, KeyCode, KeyEvent, KeyModifiers},
+};
 
+use crossterm::{
+    style::{Color, Print, ResetColor, SetForegroundColor},
+    terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType, SetSize},
+    ExecutableCommand,
+};
+
+use crate::{
+    game::command::Command,
+    snake::{direction::Direction, point::Point, snake::Snake},
+};
 
 const MAX_INTERVAL: u16 = 700;
 const MIN_INTERVAL: u16 = 200;
@@ -54,7 +53,7 @@ impl Game {
                     0 => Direction::Up,
                     1 => Direction::Right,
                     2 => Direction::Down,
-                    _ => Direction::Left
+                    _ => Direction::Left,
                 },
             ),
             speed: 0,
@@ -118,7 +117,7 @@ impl Game {
     fn calculate_interval(&self) -> Duration {
         let speed = MAX_SPEED - self.speed;
         Duration::from_millis(
-            (MIN_INTERVAL + (((MAX_INTERVAL - MIN_INTERVAL) / MAX_SPEED) * speed)) as u64
+            (MIN_INTERVAL + (((MAX_INTERVAL - MIN_INTERVAL) / MAX_SPEED) * speed)) as u64,
         )
     }
 
@@ -138,17 +137,18 @@ impl Game {
 
         match key_event.code {
             KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => Some(Command::Quit),
-            KeyCode::Char('c') | KeyCode::Char('C') =>
+            KeyCode::Char('c') | KeyCode::Char('C') => {
                 if key_event.modifiers == KeyModifiers::CONTROL {
                     Some(Command::Quit)
                 } else {
                     None
                 }
+            }
             KeyCode::Up => Some(Command::Turn(Direction::Up)),
             KeyCode::Right => Some(Command::Turn(Direction::Right)),
             KeyCode::Down => Some(Command::Turn(Direction::Down)),
             KeyCode::Left => Some(Command::Turn(Direction::Left)),
-            _ => None
+            _ => None,
         }
     }
 
@@ -164,7 +164,10 @@ impl Game {
     }
 
     fn has_bitten_itself(&self) -> bool {
-        let next_head_point = self.snake.get_head_point().transform(self.snake.get_direction(), 1);
+        let next_head_point = self
+            .snake
+            .get_head_point()
+            .transform(self.snake.get_direction(), 1);
         let mut next_body_points = self.snake.get_body_points().clone();
         next_body_points.remove(next_body_points.len() - 1);
         next_body_points.remove(0);
@@ -194,18 +197,25 @@ impl Game {
     fn prepare_ui(&mut self) {
         enable_raw_mode().unwrap();
         self.stdout
-            .execute(SetSize(self.width + 3, self.height + 3)).unwrap()
-            .execute(Clear(ClearType::All)).unwrap()
-            .execute(Hide).unwrap();
+            .execute(SetSize(self.width + 3, self.height + 3))
+            .unwrap()
+            .execute(Clear(ClearType::All))
+            .unwrap()
+            .execute(Hide)
+            .unwrap();
     }
 
     fn restore_ui(&mut self) {
         let (cols, rows) = self.original_terminal_size;
         self.stdout
-            .execute(SetSize(cols, rows)).unwrap()
-            .execute(Clear(ClearType::All)).unwrap()
-            .execute(Show).unwrap()
-            .execute(ResetColor).unwrap();
+            .execute(SetSize(cols, rows))
+            .unwrap()
+            .execute(Clear(ClearType::All))
+            .unwrap()
+            .execute(Show)
+            .unwrap()
+            .execute(ResetColor)
+            .unwrap();
         disable_raw_mode().unwrap();
     }
 
@@ -213,7 +223,7 @@ impl Game {
         let fg = SetForegroundColor(match self.speed % 3 {
             0 => Color::Green,
             1 => Color::Cyan,
-            _ => Color::Yellow
+            _ => Color::Yellow,
         });
         self.stdout.execute(fg).unwrap();
 
@@ -230,8 +240,16 @@ impl Game {
                     } else {
                         let d = body.transform(Direction::Down, 1);
                         let r = body.transform(Direction::Right, 1);
-                        let u = if body.y == 0 { body.clone() } else { body.transform(Direction::Up, 1) };
-                        let l = if body.x == 0 { body.clone() } else { body.transform(Direction::Left, 1) };
+                        let u = if body.y == 0 {
+                            body.clone()
+                        } else {
+                            body.transform(Direction::Up, 1)
+                        };
+                        let l = if body.x == 0 {
+                            body.clone()
+                        } else {
+                            body.transform(Direction::Left, 1)
+                        };
                         if (next == d && previous == r) || (previous == d && next == r) {
                             '╔'
                         } else if (next == d && previous == l) || (previous == d && next == l) {
@@ -256,18 +274,24 @@ impl Game {
             };
 
             self.stdout
-                .execute(MoveTo(body.x + 1, body.y + 1)).unwrap()
-                .execute(Print(symbol)).unwrap();
+                .execute(MoveTo(body.x + 1, body.y + 1))
+                .unwrap()
+                .execute(Print(symbol))
+                .unwrap();
         }
     }
 
     fn draw_food(&mut self) {
-        self.stdout.execute(SetForegroundColor(Color::White)).unwrap();
+        self.stdout
+            .execute(SetForegroundColor(Color::White))
+            .unwrap();
 
         for food in self.food.iter() {
             self.stdout
-                .execute(MoveTo(food.x + 1, food.y + 1)).unwrap()
-                .execute(Print("•")).unwrap();
+                .execute(MoveTo(food.x + 1, food.y + 1))
+                .unwrap()
+                .execute(Print("•"))
+                .unwrap();
         }
     }
 
@@ -277,39 +301,59 @@ impl Game {
         for y in 1..self.height + 1 {
             for x in 1..self.width + 1 {
                 self.stdout
-                    .execute(MoveTo(x, y)).unwrap()
-                    .execute(Print(" ")).unwrap();
+                    .execute(MoveTo(x, y))
+                    .unwrap()
+                    .execute(Print(" "))
+                    .unwrap();
             }
         }
     }
 
     fn draw_borders(&mut self) {
-        self.stdout.execute(SetForegroundColor(Color::DarkGrey)).unwrap();
+        self.stdout
+            .execute(SetForegroundColor(Color::DarkGrey))
+            .unwrap();
 
         for y in 0..self.height + 2 {
             self.stdout
-                .execute(MoveTo(0, y)).unwrap()
-                .execute(Print("#")).unwrap()
-                .execute(MoveTo(self.width + 1, y)).unwrap()
-                .execute(Print("#")).unwrap();
+                .execute(MoveTo(0, y))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap()
+                .execute(MoveTo(self.width + 1, y))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap();
         }
 
         for x in 0..self.width + 2 {
             self.stdout
-                .execute(MoveTo(x, 0)).unwrap()
-                .execute(Print("#")).unwrap()
-                .execute(MoveTo(x, self.height + 1)).unwrap()
-                .execute(Print("#")).unwrap();
+                .execute(MoveTo(x, 0))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap()
+                .execute(MoveTo(x, self.height + 1))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap();
         }
 
         self.stdout
-            .execute(MoveTo(0, 0)).unwrap()
-            .execute(Print("#")).unwrap()
-            .execute(MoveTo(self.width + 1, self.height + 1)).unwrap()
-            .execute(Print("#")).unwrap()
-            .execute(MoveTo(self.width + 1, 0)).unwrap()
-            .execute(Print("#")).unwrap()
-            .execute(MoveTo(0, self.height + 1)).unwrap()
-            .execute(Print("#")).unwrap();
+            .execute(MoveTo(0, 0))
+            .unwrap()
+            .execute(Print("#"))
+            .unwrap()
+            .execute(MoveTo(self.width + 1, self.height + 1))
+            .unwrap()
+            .execute(Print("#"))
+            .unwrap()
+            .execute(MoveTo(self.width + 1, 0))
+            .unwrap()
+            .execute(Print("#"))
+            .unwrap()
+            .execute(MoveTo(0, self.height + 1))
+            .unwrap()
+            .execute(Print("#"))
+            .unwrap();
     }
 }
