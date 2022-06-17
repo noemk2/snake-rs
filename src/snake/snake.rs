@@ -1,5 +1,4 @@
-use crate::direction::Direction;
-use crate::point::Point;
+use super::{direction::Direction, point::Point};
 
 #[derive(Debug)]
 pub struct Snake {
@@ -16,7 +15,11 @@ impl Snake {
             .map(|i| start.transform(opposite, i))
             .collect();
 
-        Self { body, direction, digesting: false }
+        Self {
+            body,
+            direction,
+            digesting: false,
+        }
     }
 
     pub fn get_head_point(&self) -> Point {
@@ -36,7 +39,8 @@ impl Snake {
     }
 
     pub fn slither(&mut self) {
-        self.body.insert(0, self.body.first().unwrap().transform(self.direction, 1));
+        self.body
+            .insert(0, self.body.first().unwrap().transform(self.direction, 1));
         if !self.digesting {
             self.body.remove(self.body.len() - 1);
         } else {

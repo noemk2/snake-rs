@@ -1,4 +1,4 @@
-use crate::direction::Direction;
+use super::direction::Direction;
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct Point {
@@ -28,10 +28,12 @@ impl Point {
 
     fn transform_value(value: u16, by: i16) -> u16 {
         if by.is_negative() && by.abs() as u16 > value {
-            panic!("Transforming value {} by {} would result in a negative number", value, by);
+            panic!(
+                "Transforming value {} by {} would result in a negative number",
+                value, by
+            );
         } else {
             (value as i16 + by) as u16
         }
     }
 }
-
