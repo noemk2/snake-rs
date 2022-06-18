@@ -2,9 +2,9 @@ pub mod controller {
     pub mod control;
 }
 
-// pub mod view {
-//     pub mod scenario;
-// }
+pub mod view {
+    pub mod scenario;
+}
 
 pub mod snake {
     pub mod direction; // more independent 
